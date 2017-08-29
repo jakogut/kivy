@@ -25,6 +25,9 @@ cdef extern from "X11/Xutil.h":
     int ButtonPress
     int ButtonRelease
     int MotionNotify
+    int CreateNotify
+    int DestroyNotify
+    int ReparentNotify
     int ConfigureNotify
 
     int ControlMask
@@ -107,7 +110,15 @@ cdef int event_callback(XEvent *event):
         modifiers = get_modifiers_from_state(event.xmotion.state)
         _window_object.dispatch('on_mouse_move',
                 event.xmotion.x, event.xmotion.y, modifiers)
-                
+
+    # Window Manager events
+    elif event.type == CreateNotify:
+        pass
+    elif event.type == DestroyNotify:
+        pass
+    elif event.type == ReparentNotify:
+        pass
+
     elif event.type == ConfigureNotify:
         if (event.xconfigure.width != _window_object.system_size[0]) or (event.xconfigure.height != _window_object.system_size[1]):
             _window_object._size = event.xconfigure.width, event.xconfigure.height

@@ -4,6 +4,7 @@
 #include <math.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/Xrender.h>
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/XKBlib.h>
 #include "config.h"
@@ -430,6 +431,28 @@ int x11_create_window(int width, int height, int x, int y,
 	return 1;
 }
 
+static int wm_detected = 0;
+
+int _xerror_handler(Display *display, XErrorEvent *e)
+{
+	if  (e->error_code == BadAccess)
+		wm_detected = 1;
+
+	return 0;
+}
+
+void x11_register_wm(void) {
+	XSetErrorHandler(&_xerror_handler);
+
+	XSelectInput(
+		Xdisplay,
+		Xroot,
+		SubstructureRedirectMask | SubstructureNotifyMask
+	);
+
+	XSync(Xdisplay, 0);
+}
+
 void x11_gl_swap(void) {
 	#if __USE_EGL == 0
 		glXSwapBuffers(Xdisplay, glX_window_handle);
@@ -440,6 +463,10 @@ void x11_gl_swap(void) {
 
 void x11_set_title(char *title){
 	XStoreName(Xdisplay, window_handle, title);
+}
+
+int x11_wm_detected(void) {
+	return wm_detected;
 }
 
 int x11_get_width(void) {

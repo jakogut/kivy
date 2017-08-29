@@ -59,8 +59,10 @@ cdef extern from "X11/Xutil.h":
 
 cdef extern int x11_create_window(int width, int height, int x, int y, \
         int resizable, int fullscreen, int border, int above, int CWOR, char *title)
+cdef extern void x11_register_wm()
 cdef extern void x11_gl_swap()
 cdef extern void x11_set_title(char *title)
+cdef extern int x11_wm_detected()
 cdef extern int x11_idle()
 cdef extern int x11_get_width()
 cdef extern int x11_get_height()
@@ -205,6 +207,13 @@ class WindowX11(WindowBase):
                 <char *><bytes>title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
+
+        if 'KIVYWM' in environ:
+            x11_register_wm()
+            if not x11_wm_detected():
+                Logger.info('WinX11: Kivy is running as the window manager')
+            else:
+                Logger.warning('WinX11: An X11 window manager is already running')
 
         size[0] = x11_get_width()
         size[1] = x11_get_height()

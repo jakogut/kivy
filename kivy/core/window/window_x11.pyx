@@ -93,6 +93,8 @@ cdef extern void x11_gl_swap()
 cdef extern void x11_set_title(char *title)
 cdef extern int x11_wm_detected()
 cdef extern int x11_idle()
+cdef extern Display *x11_get_display()
+cdef extern Window x11_get_root_window()
 cdef extern int x11_get_width()
 cdef extern int x11_get_height()
 
@@ -115,6 +117,9 @@ cdef list get_modifiers_from_state(unsigned int state):
     return ret
 
 cdef int event_callback(XEvent *event):
+    Xdisplay = x11_get_display()
+    Xroot = x11_get_root_window()
+
     if event.type == KeyPress or event.type == KeyRelease:
         modifiers = get_modifiers_from_state(event.xkey.state)
         scancode = event.xkey.keycode
@@ -144,6 +149,8 @@ cdef int event_callback(XEvent *event):
         pass
     elif event.type == ReparentNotify:
         pass
+    elif event.type == MapRequest:
+        XMapWindow(Xdisplay, event.xmaprequest.window)
 
     elif event.type == ConfigureNotify:
         if (event.xconfigure.width != _window_object.system_size[0]) or (event.xconfigure.height != _window_object.system_size[1]):

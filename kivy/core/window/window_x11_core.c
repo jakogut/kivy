@@ -112,6 +112,23 @@ static Bool WaitForMapNotify(Display *d, XEvent *e, char *arg)
 	}
 #endif
 
+static int connected = 0;
+
+void Xconnect(void)
+{
+	if (connected)
+		return;
+
+	Xdisplay = XOpenDisplay(NULL);
+	if (!Xdisplay)
+		fatalError("Couldn't connect to X server\n");
+
+	Xscreen = DefaultScreen(Xdisplay);
+	Xroot = RootWindow(Xdisplay, Xscreen);
+
+	connected = 1;
+}
+
 static void createTheWindow(int width, int height, int x, int y, int resizable, int fullscreen, int border, int above, int CWOR, char *title)
 {
 	XEvent event;
@@ -122,13 +139,7 @@ static void createTheWindow(int width, int height, int x, int y, int resizable, 
 	XTextProperty textprop;
 	XSetWindowAttributes attr = {0,};
 
-	Xdisplay = XOpenDisplay(NULL);
-	if (!Xdisplay) {
-		fatalError("Couldn't connect to X server\n");
-	}
-
-	Xscreen = DefaultScreen(Xdisplay);
-	Xroot = RootWindow(Xdisplay, Xscreen);
+	Xconnect();
 
 	#if __USE_EGL == 0
 		Colormap cmap;
@@ -442,6 +453,8 @@ int _xerror_handler(Display *display, XErrorEvent *e)
 }
 
 void x11_register_wm(void) {
+	Xconnect();
+
 	XSetErrorHandler(&_xerror_handler);
 
 	XSelectInput(
@@ -451,6 +464,16 @@ void x11_register_wm(void) {
 	);
 
 	XSync(Xdisplay, 0);
+}
+
+Display *x11_get_display(void)
+{
+	return Xdisplay;
+}
+
+Window x11_get_root_window(void)
+{
+	return Xroot;
 }
 
 void x11_gl_swap(void) {

@@ -234,6 +234,13 @@ class WindowX11(WindowBase):
         if 'KIVY_WINDOW_X11_CWOR' in environ:
             CWOR = True
 
+        if 'KIVYWM' in environ:
+            x11_register_wm()
+            if not x11_wm_detected():
+                Logger.info('WinX11: Kivy is running as the window manager')
+            else:
+                Logger.warning('WinX11: An X11 window manager is already running')
+
         if isinstance(self.title, bytes):
             title = self.title
         else:
@@ -244,13 +251,6 @@ class WindowX11(WindowBase):
                 <char *><bytes>title) < 0:
             Logger.critical('WinX11: Unable to create the window')
             return
-
-        if 'KIVYWM' in environ:
-            x11_register_wm()
-            if not x11_wm_detected():
-                Logger.info('WinX11: Kivy is running as the window manager')
-            else:
-                Logger.warning('WinX11: An X11 window manager is already running')
 
         size[0] = x11_get_width()
         size[1] = x11_get_height()

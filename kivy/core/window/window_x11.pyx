@@ -19,6 +19,22 @@ from os import environ
 cdef extern from "window_x11_core.c":
     pass
 
+ctypedef unsigned long Window
+
+cdef extern from "X11/Xlibint.h":
+    ctypedef struct _Xdisplay:
+        pass
+
+    ctypedef _Xdisplay Display
+
+cdef extern from "X11/Xlib.h":
+    int XConfigureWindow(Display *display, Window w, unsigned value_mask, XWindowChanges *changes)
+    void XMapWindow(Display *display, Window w)
+
+    ctypedef struct XWindowChanges:
+        pass
+
+
 cdef extern from "X11/Xutil.h":
     int KeyPress
     int KeyRelease
@@ -29,6 +45,8 @@ cdef extern from "X11/Xutil.h":
     int DestroyNotify
     int ReparentNotify
     int ConfigureNotify
+    int ConfigureRequest
+    int MapRequest
 
     int ControlMask
     int ShiftMask
@@ -39,6 +57,13 @@ cdef extern from "X11/Xutil.h":
         unsigned int keycode
         unsigned int state
 
+    ctypedef struct XMapRequestEvent:
+        unsigned long serial
+        int send_event
+        Display *display
+        Window parent
+        Window window
+
     ctypedef struct XMotionEvent:
         int x, y
         unsigned int state
@@ -47,7 +72,7 @@ cdef extern from "X11/Xutil.h":
         int x, y
         unsigned int state
         unsigned int button
-        
+
     ctypedef struct XConfigureEvent:
         int type
         int x, y
@@ -59,6 +84,7 @@ cdef extern from "X11/Xutil.h":
         XMotionEvent xmotion
         XButtonEvent xbutton
         XConfigureEvent xconfigure
+        XMapRequestEvent xmaprequest
 
 cdef extern int x11_create_window(int width, int height, int x, int y, \
         int resizable, int fullscreen, int border, int above, int CWOR, char *title)
